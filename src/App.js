@@ -1,53 +1,69 @@
 import React from "react";
+import axios from "axios";
+import User from "./components/User";
+import FollowerList from "./components/FollowerList";
 
 class App extends React.Component {
+  state = {
+    currentUser: "nyamekyeannor",
+    user: {},
+    followers: [],
+  };
+
+  componentDidMount() {
+    axios
+      .get(`https://api.github.com/users/${this.state.currentUser}`)
+      .then((resp) => {
+        this.setState({
+          ...this.state,
+          user: resp.data,
+        });
+      });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.user !== prevState.user) {
+      axios
+        .get(`https://api.github.com/users/${this.state.currentUser}/following`)
+        .then((resp) => {
+          this.setState({
+            ...this.state,
+            followers: resp.data,
+          });
+        });
+    }
+  }
+
+  handleChange = (e) => {
+    this.setState({
+      ...this.state,
+      currentUser: e.target.value,
+    });
+  };
+
+  handleSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .get(`https://api.github.com/users/${this.state.currentUser}`)
+      .then((resp) => {
+        this.setState({
+          ...this.state,
+          user: resp.data,
+        });
+      });
+  };
+
   render() {
     return (
       <div>
         <h1>Github Info</h1>
-        <form>
-          <input placeholder="Github Handle" />
+        <form onSubmit={this.handleSubmit}>
+          <input placeholder="Github Handle" onChange={this.handchange} />
           <button>Search</button>
         </form>
 
-        <div id="userCard">
-          <img src="https://avatars.githubusercontent.com/u/64448617?v=4" />
-          <a target="_blank" href="https://github.com/nyamekyeannor">
-            <h3>Nyamekye Annor</h3>
-          </a>
-          <p>(NyamekyeAnnor)</p>
-          <p>Total Repos: 33</p>
-          <p>Total Followers: 11</p>
-        </div>
-
-        <div id="followers"></div>
-        <div className="follower">
-          <img
-            width="200px"
-            src="https://avatars.githubusercontent.com/u/7147375?v=4"
-          />
-          <a target="_blank" href="https://github.com/JorgeVV">
-            <p>JorgeVV</p>
-          </a>
-        </div>
-        <div className="follower">
-          <img
-            width="200px"
-            src="https://avatars.githubusercontent.com/u/7147375?v=4"
-          />
-          <a target="_blank" href="https://github.com/JorgeVV">
-            <p>JorgeVV</p>
-          </a>
-        </div>
-        <div className="follower">
-          <img
-            width="200px"
-            src="https://avatars.githubusercontent.com/u/7147375?v=4"
-          />
-          <a target="_blank" href="https://github.com/JorgeVV">
-            <p>JorgeVV</p>
-          </a>
-        </div>
+        <User user={this.state.user} />
+        <FollowerList followers={this.state.followers} />
       </div>
     );
   }
